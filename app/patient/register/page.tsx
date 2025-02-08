@@ -10,16 +10,33 @@ export default function PatientRegister() {
   const [loading, setLoading] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    setTimeout(() => {
-      setFormSubmitted(true);
-      setLoading(false);
-    }, 2000);
+  
+    const formData = new FormData(e.target as HTMLFormElement);
+  
+    try {
+      const response = await fetch("/api/patient/register", {
+        method: "POST",
+        body: formData,
+      });
+  
+      if (response.ok) {
+        setFormSubmitted(true);
+      } else {
+        alert("Registration failed!");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Something went wrong!");
+    }
+  
+    setLoading(false);
   };
 
+  // Handle photo upload
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
@@ -36,7 +53,7 @@ export default function PatientRegister() {
       <div className="bg-white p-8 rounded-2xl shadow-lg w-96">
         {!formSubmitted ? (
           <>
-            <h2 className="text-2xl font-bold text-center mb-4">Patient Register</h2>
+            <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">Patient Register</h2>
 
             {/* Profile Photo Upload */}
             <div className="flex flex-col items-center">
@@ -53,12 +70,14 @@ export default function PatientRegister() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <input type="text" placeholder="Full Name" className="w-full px-3 py-2 border rounded-lg" required />
-              <input type="number" placeholder="Age" className="w-full px-3 py-2 border rounded-lg" required />
-              <input type="tel" placeholder="Phone Number" className="w-full px-3 py-2 border rounded-lg" required />
+              <input type="text" name="full_name" placeholder="Full Name" className="w-full px-3 py-2 border rounded-lg" required />
+              <input type="email" name="email" placeholder="Email" className="w-full px-3 py-2 border rounded-lg" required />
+              <input type="password" name="password" placeholder="Password" className="w-full px-3 py-2 border rounded-lg" required />
+              <input type="number" name="age" placeholder="Age" className="w-full px-3 py-2 border rounded-lg" required />
+              <input type="tel" name="phone" placeholder="Phone Number" className="w-full px-3 py-2 border rounded-lg" required />
 
               {/* Gender Selection */}
-              <select className="w-full px-3 py-2 border rounded-lg" required>
+              <select name="gender" className="w-full px-3 py-2 border rounded-lg" required>
                 <option value="">Select Gender</option>
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -66,7 +85,7 @@ export default function PatientRegister() {
               </select>
 
               {/* Previous Disease Dropdown */}
-              <select className="w-full px-3 py-2 border rounded-lg" required>
+              <select name="previous_disease" className="w-full px-3 py-2 border rounded-lg" required>
                 <option value="">Any Previous Disease?</option>
                 <option value="Diabetes">Diabetes</option>
                 <option value="Hypertension">Hypertension</option>
@@ -88,9 +107,9 @@ export default function PatientRegister() {
 
             <p className="text-center text-sm mt-3">
               Already registered?{" "}
-              <Link href="/patient/login" className="text-blue-500 hover:underline">
-                Login here
-              </Link>
+              <Link href="/patient/login">
+  <span className="text-blue-500 hover:underline">Login here</span>
+</Link>
             </p>
           </>
         ) : (

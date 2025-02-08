@@ -7,17 +7,42 @@ export default function DoctorLogin() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Doctor logging in with:", email, password);
-    // API logic for doctor authentication can be added here
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/doctor/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        router.push("/doctor/dashboard"); // Redirect to doctor dashboard
+      } else {
+        setError(data.error || "Invalid login credentials");
+      }
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
+      console.error("Login error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white shadow-lg rounded-lg p-8 w-96">
         <h2 className="text-2xl font-bold text-center mb-6 text-black">Doctor Login</h2>
+
+        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
         <form onSubmit={handleLogin} className="space-y-4">
           {/* Email Field */}
@@ -49,9 +74,12 @@ export default function DoctorLogin() {
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
+            className={`w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition ${
+              loading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
